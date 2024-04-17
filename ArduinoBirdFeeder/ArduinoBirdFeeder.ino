@@ -1,3 +1,4 @@
+// Libraries
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiMulti.h>
@@ -7,6 +8,7 @@
 #include <ESP32Servo.h>
 #include <ArduinoJson.h>
 
+// Setup pins, geluidssnelheid en rotory encoder draai richting
 #define USE_SERIAL Serial
 #define CLK_PIN 25
 #define DT_PIN 26
@@ -14,16 +16,16 @@
 #define DIRECTION_CW 0
 #define DIRECTION_CCW 1
 #define SOUND_SPEED 0.034
-#define CM_TO_INCH 0.393701
 
 WiFiMulti wifiMulti;
 
-
+// Pins aan variabele voegen
 const int trigPin = 5;
 const int echoPin = 18;
 const int servoPin1 = 32;
 const int servoPin2 = 33;
 
+// Variabele aanmaken
 int led_state = 0;
 int lcdColumns = 16;
 int lcdRows = 2;
@@ -44,9 +46,11 @@ double prev_counter;
 
 bool isFeeding = false;
 
-
+// Setup voor lcd scherm
 LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
+
 ezButton button(SW_PIN);
+
 Servo myservoZwart;
 Servo myservoBlauw;
 
@@ -57,7 +61,7 @@ void IRAM_ATTR ISR_encoder() {
   interruptOccurred = true;
 }
 
-
+// Timer class uit les
 class tmrMicros  { 
   private: 
     unsigned long nextChangeTime; 
@@ -99,7 +103,7 @@ tmrMicros tmrCounter;
 void setup() {
   Serial.begin(115200);
 
-
+// Maak verbinding met wifi
   wifiMulti.addAP("GeenCrompouceMaarChocoladePoes", "mmmmmmlekker");
     while (wifiMulti.run() != WL_CONNECTED) {
     Serial.print(".");
@@ -114,6 +118,7 @@ void setup() {
   pinMode(CLK_PIN, INPUT);
   pinMode(DT_PIN, INPUT);
 
+// Initialize het lcd scherm en zet de backlight aan
   lcd.init();
   lcd.backlight();
 
@@ -125,6 +130,7 @@ void setup() {
   ESP32PWM::allocateTimer(2);
   ESP32PWM::allocateTimer(3);
 
+// Setup voor de servos
   myservoZwart.setPeriodHertz(50);
   myservoZwart.attach(servoPin1, 500, 2400);
   myservoBlauw.setPeriodHertz(50);
@@ -144,10 +150,12 @@ void opslagMeten() {
   
   long duration = pulseIn(echoPin, HIGH);
   
+// Om het verschil van het versturen van het geluid en het ontvangen van het geluid om te zetten naar afstand, gebruik geluidssnelheid
   float distanceCm = duration * SOUND_SPEED/2;
-  float distanceInch = distanceCm * CM_TO_INCH;
+// Om dit om te zetten naar voorraadprocent, 100% - gemeten centimeter / diepte opslag bus in centimeter * 100
   float voorraadProcent = 100 - distanceCm / 20.8 * 100;
 
+// Opslag percentage printen op het lcd scherm
   lcd.setCursor(0,0);
   lcd.print("Opslag: ");
   if (voorraadProcent >= 90){
@@ -196,6 +204,7 @@ void opslagMeten() {
   }
 }
 
+// Printen van het VOER NU systeem (met de rotory encoder)
 void printCounter() {
   lcd.setCursor(0,1);
   lcd.print("Nu voeren: ");
@@ -203,6 +212,7 @@ void printCounter() {
   lcd.print("gr");
 }
 
+// For loop voor het openen en sluiten van de servo motor. Dit gaat door servo.write(pos) en dan met de for loop pos 100 tm 140 en weer terug
 void voerSessie() {
   for (int i = 0; i < aantalVoerSessies; i++) {
     for (pos = 100; pos <= 140; pos += 1) {
@@ -210,7 +220,6 @@ void voerSessie() {
       delay(1);
     }
     delay(380);
-    // delay(500); //2000 standaard
     for (pos = 140; pos >= 100; pos -= 1) {
       myservoZwart.write(pos);
       delay(1);
@@ -220,7 +229,7 @@ void voerSessie() {
 }
 
 
-
+// Controleer of de timer gecheckt is
 void checkTimers(){
     if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
@@ -242,6 +251,7 @@ void checkTimers(){
   }
 }
 
+// Controleer of er gevoerd moet worden
 void checkGiveFood(){
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
@@ -281,6 +291,7 @@ void checkGiveFood(){
   }
 }
 
+// Reset de feednow naar 0
 void setFoodNow(){
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
@@ -302,6 +313,7 @@ void setFoodNow(){
   }
 }
 
+// Update de voorraad percentage
 void updateStorageLevel(){
     if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
@@ -323,6 +335,7 @@ void updateStorageLevel(){
   }
 }
 
+// Zet de feed counter met 2.5gram omhoog
 void increaseFood() {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
@@ -344,6 +357,7 @@ void increaseFood() {
   }
 }
 
+// Zet de feed counter met 2.5gram omlaag
 void decreaseFood() {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
@@ -367,6 +381,7 @@ void decreaseFood() {
   }
 }
 
+// Haalt het aantal gram voedsel op dat op de display staat of in de web app
 double getAmountOfFood() {
   double amountOfFood = -1;
 
@@ -405,9 +420,8 @@ double getAmountOfFood() {
 }
 
 
-
+// Interrupt handeling
 void handleInterrupt() {
-  // Add your interrupt handling code here
   if ((millis() - last_time_interupt) < 50){
     return;
   }
@@ -434,6 +448,7 @@ void loop() {
     handleInterrupt();
   }
 
+// Controleert de timers, update de storage en controleert hoeveel gram voedsel er gegeven moet worden
   if ((millis() - last_time_timerChecked) > 10000){
     checkTimers();
     updateStorageLevel();
@@ -443,6 +458,10 @@ void loop() {
 
   button.loop();
 
+// Als er op de knop gedrukt wordt om te voeren zet hij als eerst de variabele isFeeding op true zodat je weet dat er wordt gevoedt.
+// Dan wordt het lcd scherm verandert. Ook wordt het aantalVoerSessies berekent door de counter (dat is het aantal gram dat is gekozen) gedeelt door 2.5
+// Dit omdat elke voer sessie (portie) 2.5 gram is.
+// Als laatste gaat isFeeding weer op false omdat de feed cyclus voorbij is
   if ((millis() - last_time_buttonPress) > 1500 && button.isPressed() && isFeeding == false){
     isFeeding = true;
 
@@ -457,12 +476,13 @@ void loop() {
     isFeeding = false;
   }
   
-
+// Zorgt ervoor dat de opslag elke 2 seconde gemeten wordt
   if (! tmrOpslag.tmrActive()) { 
     opslagMeten(); 
     tmrOpslag.tmrSet(2000000); 
   } 
   
+// Zorgt ervoor dat de counter elke 0.5 seconden geupdate kan worden met de draaiknop
   if (! tmrCounter.tmrActive()) { 
     printCounter(); 
     tmrCounter.tmrSet(500000); 
