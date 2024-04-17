@@ -1,3 +1,4 @@
+//verstuurt login data naar de database en ontvangt een response op basis van de gegeven data
 document.getElementById("loginForm").addEventListener("submit", function(event) {
     event.preventDefault(); 
 

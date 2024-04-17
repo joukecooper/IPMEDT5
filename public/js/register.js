@@ -1,3 +1,4 @@
+//verstuurt register data naar database en krijgt een response terug up basis van deze data
 document.getElementById("registerForm").addEventListener("submit", function(event) {
     event.preventDefault(); 
 

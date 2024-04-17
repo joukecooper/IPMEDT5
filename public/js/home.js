@@ -1,3 +1,4 @@
+// Verzendt een verzoek om direct voer te geven aan de vogel
 function FeedBirdButtonPressed() {
     fetch("/getFeedNow")
     .then(response => {
@@ -35,7 +36,7 @@ function FeedBirdButtonPressed() {
     });
 }
 
-
+// Verzendt een verzoek om de hoeveelheid voedsel te verlagen naar de server
 function DecreaseFoodButtonPressed() {
     const baseUrl = window.location.origin;
     const url = `${baseUrl}/decreaseFood`;
@@ -51,7 +52,7 @@ function DecreaseFoodButtonPressed() {
     UpdateAmountOfFood();
 
 }
-
+// Verzendt een verzoek om de hoeveelheid voedsel te verhogen naar de server
 function IncreaseFoodButtonPressed() {
     const baseUrl = window.location.origin;
     const url = `${baseUrl}/increaseFood`;
@@ -67,7 +68,7 @@ function IncreaseFoodButtonPressed() {
 
     UpdateAmountOfFood();
 }
-
+// Haalt de hoeveelheid voedsel op van de server en werkt deze bij op de webpagina
 function UpdateAmountOfFood() {
     const baseUrl = window.location.origin;
     const url = `${baseUrl}/amountOfFood`;

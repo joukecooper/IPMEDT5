@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     newAlarmBtn.addEventListener('click', createAlarm);
 
-
+    //maakt alarm aan
     function createAlarm() {
         const baseUrl = window.location.origin;
         const url = `${baseUrl}/createTimer`;
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-
+    //krijgt alarm van de database
     function getAlarms() {
         const baseUrl = window.location.origin;
         const url = `${baseUrl}/getTimers`;
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('There was a problem with your fetch operation:', error);
             });
     }
-
+    //laad alle alarmen opnieuw in
     function updateAlarm(timers) {
         alarmsContainer.innerHTML = '';
     
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
             alarmsContainer.appendChild(clone);
         });
     }
-
+    //update de actieve alarmen
     function updateTimerActive(timerId, isActive) {
         const queryString = `timer_id=${timerId}&feed_time_is_active=${isActive}`;
         
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error updating timer status:', error);
             });
     }
-
+    //slaat de alarm op
     function saveTimer(data) {
         const { timer_id, time, days_of_week } = data;
 
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error saving timer:', error);
             });
     }
-
+    //verwijderd de alarm
     function deleteAlarm(timerId) {
         fetch("/deleteTimer?timer_id=" + timerId, {
             method: 'GET'
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error deleting timer:', error);
             });
     }
-
+    //zorgt er voor dat je de alarmen kan in- en uitklappen
     alarmsContainer.addEventListener('click', function (event) {
         if (event.target.closest('.alarm') && !event.target.matches('button') && !event.target.matches('input') && !event.target.matches('span') && !event.target.matches('label')) {
             const alarm = event.target.closest('.alarm');

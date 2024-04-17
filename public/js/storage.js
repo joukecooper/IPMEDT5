@@ -1,3 +1,4 @@
+//krijgt elke 15 seconde de opslag inhoud data van de database en geeft de juiste svg weer op basis van die data
 function updateStorageLevel() {
   fetch("/getStorageLevel")
   .then(response => {
