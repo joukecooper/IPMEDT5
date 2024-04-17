@@ -8,41 +8,55 @@ use App\Models\FeederSettings;
 class FeederSettingsController extends Controller
 {
     
+    // Functie om de hoeveelheid voedsel per maaltijd te verhogen
     public function increase_food_per_meal(){
 
-        $feeder_settings = FeederSettings::first();
+        // Haal de instellingen van de voederautomaat op uit de database
+        $voederautomaat_instellingen = FeederSettings::first();
 
-        $feeder_settings->food_per_meal_cycles++;
-        $feeder_settings->save();
+        // Verhoog het aantal cycli voor voedsel per maaltijd
+        $voederautomaat_instellingen->food_per_meal_cycles++;
+        $voederautomaat_instellingen->save();
 
-        return response()->json(['message' => 'food per meal has been increased'], 200);
+        // Geef een succesbericht terug
+        return response()->json(['bericht' => 'hoeveelheid voedsel per maaltijd is verhoogd'], 200);
 
     }
 
+    // Functie om de hoeveelheid voedsel per maaltijd te verlagen
     public function decrease_food_per_meal(){
 
-        $feeder_settings = FeederSettings::first();
+        // Haal de instellingen van de voederautomaat op uit de database
+        $voederautomaat_instellingen = FeederSettings::first();
 
-        if ($feeder_settings->food_per_meal_cycles != 1){
+        // Controleer of het aantal cycli voor voedsel per maaltijd niet al op 1 staat
+        if ($voederautomaat_instellingen->food_per_meal_cycles != 1){
 
-            $feeder_settings->food_per_meal_cycles--;
-            $feeder_settings->save();
+            // Verlaag het aantal cycli voor voedsel per maaltijd
+            $voederautomaat_instellingen->food_per_meal_cycles--;
+            $voederautomaat_instellingen->save();
 
-            return response()->json(['message' => 'food per meal has been decreased'], 200);
+            // Geef een succesbericht terug
+            return response()->json(['bericht' => 'hoeveelheid voedsel per maaltijd is verlaagd'], 200);
         
         }
 
-        return response()->json(['error' => 'Bird need food :('], 202);
+        // Als het aantal cycli al op 1 staat, geef een foutmelding terug
+        return response()->json(['fout' => 'Vogel heeft voedsel nodig :('], 202);
 
     }   
 
+    // Functie om de hoeveelheid voedsel op te vragen
     public function get_amount_of_food(){
 
-        $feeder_settings = FeederSettings::first();
+        // Haal de instellingen van de voederautomaat op uit de database
+        $voederautomaat_instellingen = FeederSettings::first();
 
-        $amount_of_food = $feeder_settings->food_per_meal_cycles * 2.5;
+        // Bereken de hoeveelheid voedsel op basis van het aantal cycli voor voedsel per maaltijd
+        $hoeveelheid_voedsel = $voederautomaat_instellingen->food_per_meal_cycles * 2.5;
 
-        return response()->json(['doubleValue' => $amount_of_food]);
+        // Geef de hoeveelheid voedsel terug
+        return response()->json(['doubleValue' => $hoeveelheid_voedsel]);
 
     }
 

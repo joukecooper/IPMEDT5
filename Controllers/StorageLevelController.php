@@ -8,40 +8,55 @@ use App\Models\StorageLevel;
 class StorageLevelController extends Controller
 {
     
+    // Functie om het opslagniveau in te stellen
     public function set_storage_level(Request $request){
 
-        $storage_level = StorageLevel::first();
+        // Haal het opslagniveau op uit de database
+        $opslagniveau = StorageLevel::first();
 
-        $storage_level->fill_level = $request->input('fill_level');
-        $storage_level->save();
+        // Update het opslagniveau met de nieuwe waarde uit het verzoek
+        $opslagniveau->fill_level = $request->input('fill_level');
+        $opslagniveau->save();
 
-        return response()->json(['message' => 'Storage level updated'], 200);
+        // Geef een succesbericht terug
+        return response()->json(['bericht' => 'Opslagniveau bijgewerkt'], 200);
 
     }
 
+    // Functie om het opslagniveau op te halen
     public function get_storage_level(Request $request){
 
-        $storage_level = StorageLevel::first();
-        return response()->json(['message' => $storage_level->fill_level], 200);
+        // Haal het opslagniveau op uit de database
+        $opslagniveau = StorageLevel::first();
+
+        // Geef het opslagniveau terug als JSON-bericht
+        return response()->json(['bericht' => $opslagniveau->fill_level], 200);
 
     }
 
-
+    // Functie om de feed-now-status in te stellen
     public function set_feed_now(Request $request){
 
-        $storage_level = StorageLevel::first();
+        // Haal het opslagniveau op uit de database
+        $opslagniveau = StorageLevel::first();
 
-        $storage_level->feed_now = $request->input('feed_now');
-        $storage_level->save();
+        // Update de feed-now-status met de nieuwe waarde uit het verzoek
+        $opslagniveau->feed_now = $request->input('feed_now');
+        $opslagniveau->save();
 
-        return response()->json(['message' => 'Storage level updated'], 200);
+        // Geef een succesbericht terug
+        return response()->json(['bericht' => 'Opslagniveau bijgewerkt'], 200);
 
     }
 
+    // Functie om de feed-now-status op te halen
     public function get_feed_now(Request $request){
 
-        $storage_level = StorageLevel::first();
-        return response()->json(['message' => $storage_level->feed_now], 200);
+        // Haal de feed-now-status op uit de database
+        $opslagniveau = StorageLevel::first();
+
+        // Geef de feed-now-status terug als JSON-bericht
+        return response()->json(['bericht' => $opslagniveau->feed_now], 200);
 
     }
 

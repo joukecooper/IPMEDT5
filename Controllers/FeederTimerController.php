@@ -9,110 +9,137 @@ use App\Models\StorageLevel;
 class FeederTimerController extends Controller
 {
     
+    // Functie om een nieuwe timer aan te maken
     public function create_new_timer(Request $request){
 
-        $new_user = new FeederTimer();
+        // Maak een nieuw timer object aan
+        $nieuwe_timer = new FeederTimer();
 
-        $current_hour = date('H');
-        $new_hour = ($current_hour - 1 + 24) % 24;
-        $new_time = str_pad($new_hour, 2, '0', STR_PAD_LEFT) . ':' . date('i');
-        $new_user->time = $new_time;
+        // Bepaal het huidige uur en bereken het nieuwe uur voor de timer
+        $huidig_uur = date('H');
+        $nieuw_uur = ($huidig_uur - 1 + 24) % 24;
+        $nieuwe_tijd = str_pad($nieuw_uur, 2, '0', STR_PAD_LEFT) . ':' . date('i');
+        $nieuwe_timer->tijd = $nieuwe_tijd;
 
-        $new_user->days_of_week = '';
-        $new_user->feed_time_is_active = true;
+        // Stel de dagen van de week en de status van de voedertijd in
+        $nieuwe_timer->dagen_van_de_week = '';
+        $nieuwe_timer->feed_time_is_active = true;
 
-        $new_user->save();
-        return response()->json(['message' => 'Timer has been created'], 200);
+        // Sla de nieuwe timer op in de database
+        $nieuwe_timer->save();
+        
+        // Geef een succesbericht terug
+        return response()->json(['bericht' => 'Timer is aangemaakt'], 200);
     }
 
+    // Functie om een timer te verwijderen
     public function delete_timer(Request $request){
 
+        // Haal de timer-ID op uit het verzoek
         $timer_id = $request->input('timer_id');
 
-        $exists = FeederTimer::where('timer_id', $timer_id)->exists();
+        // Controleer of de timer bestaat
+        $bestaat = FeederTimer::where('timer_id', $timer_id)->exists();
 
-        if (!$exists){
+        // Als de timer niet bestaat, geef een foutmelding terug
+        if (!$bestaat){
 
-            return response()->json(['error' => 'Timer does not exist'], 400);
+            return response()->json(['fout' => 'Timer bestaat niet'], 400);
 
         } else {
 
+            // Verwijder de timer uit de database
             FeederTimer::where('timer_id', $timer_id)->delete();
-            return response()->json(['message' => 'Timer has been deleted'], 200);
+            return response()->json(['bericht' => 'Timer is verwijderd'], 200);
 
         }
 
     }
 
+    // Functie om een timer bij te werken
     public function update_timer(Request $request){
         $timer_id = $request->input('timer_id');
     
         $timer = FeederTimer::where('timer_id', $timer_id)->first();
     
         if (!$timer){
-            return response()->json(['error' => 'Timer does not exist'], 400);
+            return response()->json(['fout' => 'Timer bestaat niet'], 400);
         } else {
-            $timer->time = $request->input('time');
-            $timer->days_of_week = $request->input('days_of_week');
+            // Update de tijd en dagen van de week van de timer
+            $timer->tijd = $request->input('tijd');
+            $timer->dagen_van_de_week = $request->input('dagen_van_de_week');
     
+            // Sla de wijzigingen op
             $timer->save();
-            return response()->json(['message' => 'Timer has been updated'], 200);
+            return response()->json(['bericht' => 'Timer is bijgewerkt'], 200);
         }
     }
 
+    // Functie om de actieve status van een timer bij te werken
     public function update_timer_active(Request $request){
         $timer_id = $request->input('timer_id');
     
         $timer = FeederTimer::where('timer_id', $timer_id)->first();
     
         if (!$timer){
-            return response()->json(['error' => 'Timer does not exist'], 400);
+            return response()->json(['fout' => 'Timer bestaat niet'], 400);
         } else {
+            // Update de actieve status van de timer
             $timer->feed_time_is_active = $request->input('feed_time_is_active');
     
+            // Sla de wijzigingen op
             $timer->save();
-            return response()->json(['message' => 'Timer has been updated'], 200);
+            return response()->json(['bericht' => 'Timer is bijgewerkt'], 200);
         }
     }
 
+    // Functie om alle timers op te halen
     public function get_timers(Request $request){
         $timers = FeederTimer::get();
-        return response()->json(['message' => $timers], 200);
+        return response()->json(['bericht' => $timers], 200);
     }
 
+    // Functie om de timers te controleren en het voeren te activeren indien nodig
     public function check_timers(Request $request){
-        $current_time = now()->format('H:i');
+        $huidige_tijd = now()->format('H:i');
     
+        // Haal alle actieve timers op
         $timers = FeederTimer::where('feed_time_is_active', true)->get();
     
         foreach ($timers as $timer) {
-            if ($this->isCurrentDayActive($timer->days_of_week)) {
-                $stored_time = date('H:i', strtotime($timer->time));
+            // Controleer of de timer actief is op de huidige dag
+            if ($this->isCurrentDayActive($timer->dagen_van_de_week)) {
+                $opgeslagen_tijd = date('H:i', strtotime($timer->tijd));
     
-                $current_hours_minutes = substr($current_time, 0, 5);
-                $stored_hours_minutes = substr($stored_time, 0, 5);
+                // Vergelijk de huidige tijd met de opgeslagen tijd van de timer
+                $huidige_uur_minuten = substr($huidige_tijd, 0, 5);
+                $opgeslagen_uur_minuten = substr($opgeslagen_tijd, 0, 5);
     
-                if ($current_hours_minutes === $stored_hours_minutes) {
+                // Als de tijden overeenkomen, activeer het voeren
+                if ($huidige_uur_minuten === $opgeslagen_uur_minuten) {
                     $this->triggerAlarm($timer);
-                    return response()->json(['message' => 'feed now = 1'], 200);
+                    return response()->json(['bericht' => 'voer nu = 1'], 200);
                 }
             }
         }
     
-        return response()->json(['message' => 'No timers activated'], 200);
+        // Als er geen timers zijn geactiveerd, geef een bericht terug
+        return response()->json(['bericht' => 'Geen geactiveerde timers'], 200);
     }
     
-    private function isCurrentDayActive($daysOfWeek){
-        $currentDay = strtolower(now()->format('l'));
-        $activeDays = explode(';', strtolower($daysOfWeek));
-        $isDayActive = in_array($currentDay, $activeDays);
-        return $isDayActive;
+    // Privéfunctie om te controleren of de huidige dag actief is voor de timer
+    private function isCurrentDayActive($dagenVanDeWeek){
+        $huidigeDag = strtolower(now()->format('l'));
+        $actieveDagen = explode(';', strtolower($dagenVanDeWeek));
+        $isDagActief = in_array($huidigeDag, $actieveDagen);
+        return $isDagActief;
     }
     
+    // Privéfunctie om het voeren te activeren
     private function triggerAlarm($timer){
-        $storage_level = StorageLevel::first();
-        $storage_level->feed_now = 1;
-        $storage_level->save();
+        $opslagniveau = StorageLevel::first();
+        $opslagniveau->feed_now = 1;
+        $opslagniveau->save();
     }
     
 }
